@@ -27,7 +27,7 @@ def cal_cum_returns(pct_changes):
     return (1 + pct_changes.fillna(0)).cumprod() - 1
 
 def cal_cum_returns2(log_returns):
-    return log_returns.cumsum()
+    return np.exp(log_returns.cumsum()) - 1
 
 closes = data.copy(deep=True)
 #print(data)
@@ -70,13 +70,13 @@ postions = {'AAPL': 100, 'MSFT': 100}
 stocks = list(postions.keys())
 
 #download daily price data for each of the stocks in the portfolio
-prices = web.DataReader(stocks, data_source='yahoo',start='01/01/2017')['Adj Close']
+prices = web.DataReader(stocks, data_source='yahoo',start='01/01/2016')['Adj Close']
 portfolio = create_portfolio(stocks, [100, 100])
 print(portfolio)
 
 def test_case(prices, portfolio):
 
-    #1 daily return , weight it, cumulative it
+    #1 daily return , weight it, cumulative it, there is errors
     returns = cal_pct_changes(prices)
     weighted_returns = calculate_weighted_portfolio_value(portfolio, returns)
     cum_wr = cal_cum_returns(weighted_returns)
@@ -90,12 +90,13 @@ def test_case(prices, portfolio):
     weighted_returns2 = calculate_weighted_portfolio_value(portfolio, returns2, 'Value2')
     cum_wr2 = cal_cum_returns2(weighted_returns2)
 
-    # calculate the cumalative return first, then apply the weight
+    # calculate the cumalative return first, then apply the weight, there is errors
     cum_r2 = cal_cum_returns2(returns2)
+    #print(cum_r2)
     weighted_cum_r2 = calculate_weighted_portfolio_value(portfolio, cum_r2, 'Value2-1')
 
     plus1_cum_r2 = cum_r2 + 1
-    print(plus1_cum_r2.to_dict())
+    #print(plus1_cum_r2.to_dict())
 
 
     result = pd.concat([returns, weighted_returns, cum_wr, weighted_cum_r,
@@ -103,7 +104,22 @@ def test_case(prices, portfolio):
 
     print(result.tail(10))
 
-    # summary: the log daily is less errors, so we choose it as option
+    # summary: the weighted_cum_r and weighted_cum_r2 are same, they are no errors
+    # cum_wr and cum_wr2 acuumulated errors
+
+def test_case2(prices, portfolio):
+    returns2 = cal_log_returns(prices)
+    # calculate the cumalative return first, then apply the weight, there is errors
+    cum_r2 = cal_cum_returns2(returns2)
+    weighted_cum_r2 = calculate_weighted_portfolio_value(portfolio, cum_r2, 'Value')
+
+    #print(plus1_cum_r2.to_dict())
+
+
+    result = pd.concat([returns2, weighted_cum_r2], axis=1)
+
+    print(result.tail(10))
 
 test_case(prices, portfolio)
+#test_case2(prices, portfolio)
 
